@@ -1,0 +1,27 @@
+name: Update opendbc submodule
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-submodule:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: true
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update opendbc submodule to HiHoWillyO fork HEAD
+        run: |
+          git submodule update --remote opendbc_repo
+          git add opendbc_repo
+          git diff --cached --quiet || git commit -m "Update opendbc submodule to HiHoWillyO/opendbc HEAD"
+
+      - name: Push
+        run: git push
