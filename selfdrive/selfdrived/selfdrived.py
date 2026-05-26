@@ -217,7 +217,13 @@ class SelfdriveD(CruiseHelper):
       self.events.add(EventName.resumeBlocked)
 
     if not self.CP.notCar:
-      self.events.add_from_msg(self.sm['driverMonitoringState'].events)
+      # Low-speed DM suppression: don't fire distraction alerts at parking speed.
+      # At < ~10 mph you're naturally looking around for a spot, not looking at the road.
+      # sunnypilot's MADS already keeps lateral active during DM alerts, but the alerts
+      # themselves are annoying. This quiets them below the threshold.
+      PARKING_SPEED_THRESHOLD = 4.5  # m/s (~10 mph)
+      if self.sm['carState'].vEgo >= PARKING_SPEED_THRESHOLD:
+        self.events.add_from_msg(self.sm['driverMonitoringState'].events)
       self.events_sp.add_from_msg(self.sm['longitudinalPlanSP'].events)
 
     # Add car events, ignore if CAN isn't valid
